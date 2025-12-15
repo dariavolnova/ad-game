@@ -1,5 +1,3 @@
-// game.js - Основная игровая логика с правильным счетчиком этажей
-
 class Game {
     constructor(canvasId, scoreElementId, modalManager) {
         this.canvas = document.getElementById(canvasId);
@@ -13,7 +11,7 @@ class Game {
         this.gameOver = false;
         this.baseBlockWidth = 200;
         this.baseBlockHeight = 30;
-        this.baseSpeed = 3;
+        this.baseSpeed = 6; // Увеличено с 3 до 6 (в 2 раза больше)
         this.maxBlocks = 15;
         
         // Анимационные переменные
@@ -30,11 +28,13 @@ class Game {
         this.imagesToLoad = 8;
         this.imagesLoadedCount = 0;
         
-        // Адаптивные размеры
+        // Адаптивные размеры (теперь без адаптации скорости)
         this.blockWidth = 0;
         this.blockHeight = 0;
-        this.blockSpeed = 0;
         
+        // Для независимой от FPS скорости
+        this.lastTime = 0;
+        this.deltaTime = 0;
         this.gameLoopRunning = false;
         
         this.init();
@@ -175,10 +175,9 @@ class Game {
         this.canvas.width = maxCanvasWidth;
         this.canvas.height = maxCanvasHeight;
         
-        // Базовые размеры для расчета
+        // Базовые размеры для расчета (без адаптации скорости)
         this.blockWidth = Math.min(this.baseBlockWidth, this.canvas.width * 0.3);
         this.blockHeight = this.baseBlockHeight * (this.canvas.height / 700);
-        this.blockSpeed = this.baseSpeed * (this.canvas.width / 600);
         
         // Обновляем размеры всех существующих блоков
         this.blocks.forEach(block => {
@@ -231,7 +230,7 @@ class Game {
             if (e.code === 'Space' && !this.currentBlock.isFalling) {
                 this.currentBlock.isFalling = true;
                 this.currentBlock.isMoving = false;
-                this.currentBlock.speedY = 3;
+                this.currentBlock.speedY = 6; // Увеличено с 3 до 6 (в 2 раза больше)
             }
         });
 
@@ -243,7 +242,7 @@ class Game {
                 !this.currentBlock.hasLanded) {
                 this.currentBlock.isFalling = true;
                 this.currentBlock.isMoving = false;
-                this.currentBlock.speedY = 3;
+                this.currentBlock.speedY = 6; // Увеличено с 3 до 6
             }
         });
 
@@ -268,7 +267,7 @@ class Game {
             if (touch.clientY < this.canvas.height * 0.2) {
                 this.currentBlock.isFalling = true;
                 this.currentBlock.isMoving = false;
-                this.currentBlock.speedY = 3;
+                this.currentBlock.speedY = 6; // Увеличено с 3 до 6
             }
         });
 
@@ -333,7 +332,7 @@ class Game {
             originalHeight: null,
             aspectRatio: null,
             realHeight: this.baseBlockHeight,
-            speedX: this.blockSpeed * startDirection,
+            speedX: this.baseSpeed * startDirection, // Теперь 6 вместо 3
             speedY: 0,
             color: this.getRandomColor(),
             image: `assets/block${blockNumber}.png`,
@@ -392,12 +391,12 @@ class Game {
             this.fallRotationCenter.x = previousBlock.x + overlapInfo.overlap;
             this.fallRotationCenter.y = previousBlock.y;
             this.fallAngle = 0;
-            this.fallSpeed = -0.08;
+            this.fallSpeed = -0.16; // Увеличено с -0.08 до -0.16
         } else {
             this.fallRotationCenter.x = previousBlock.x + previousBlock.width - overlapInfo.overlap;
             this.fallRotationCenter.y = previousBlock.y;
             this.fallAngle = 0;
-            this.fallSpeed = 0.08;
+            this.fallSpeed = 0.16; // Увеличено с 0.08 до 0.16
         }
         
         const instability = 1 - (overlapInfo.overlap / overlapInfo.minOverlap);
@@ -409,15 +408,15 @@ class Game {
     updateFallAnimation() {
         if (!this.fallingBlock) return false;
         
-        this.fallAngle += this.fallSpeed * 10;
+        this.fallAngle += this.fallSpeed * 10 * this.deltaTime;
         
         if (this.fallDirection === 'left') {
-            this.fallSpeed -= 0.003;
+            this.fallSpeed -= 0.006 * this.deltaTime; // Увеличено с 0.003 до 0.006
         } else {
-            this.fallSpeed += 0.003;
+            this.fallSpeed += 0.006 * this.deltaTime; // Увеличено с 0.003 до 0.006
         }
         
-        this.fallRotationCenter.y += Math.abs(this.fallSpeed) * 5;
+        this.fallRotationCenter.y += Math.abs(this.fallSpeed) * 10 * this.deltaTime; // Увеличено с 5 до 10
         
         const isFallen = (this.fallDirection === 'left' && this.fallAngle <= -90) || 
                          (this.fallDirection === 'right' && this.fallAngle >= 90) ||
@@ -441,7 +440,7 @@ class Game {
                 setTimeout(() => {
                     this.modalManager.showGameOver(this.blocks.length);
                     this.gameOver = true;
-                }, 100); // Задержка 0.8 секунды перед показом
+                }, 100);
             }
             return;
         }
@@ -455,9 +454,9 @@ class Game {
             return;
         }
         
-        // Движение влево-вправо
+        // Движение влево-вправо (с учетом deltaTime для одинаковой скорости)
         if (this.currentBlock.isMoving && !this.currentBlock.isFalling) {
-            this.currentBlock.x += this.currentBlock.speedX;
+            this.currentBlock.x += this.currentBlock.speedX * this.deltaTime;
             
             if (this.currentBlock.x <= 0) {
                 this.currentBlock.x = 0;
@@ -469,10 +468,10 @@ class Game {
             }
         }
         
-        // Падение
+        // Падение (с учетом deltaTime)
         if (this.currentBlock.isFalling) {
-            this.currentBlock.y += this.currentBlock.speedY;
-            this.currentBlock.speedY += 0.5;
+            this.currentBlock.y += this.currentBlock.speedY * this.deltaTime;
+            this.currentBlock.speedY += 1.0 * this.deltaTime; // Увеличено с 0.5 до 1.0
             
             let collision = false;
             let collidedBlock = null;
@@ -523,7 +522,7 @@ class Game {
                             // ВЫИГРЫШ: показываем окно с задержкой
                             setTimeout(() => {
                                 this.modalManager.showSuccess();
-                            }, 200); // Задержка 0.8 секунды перед показом
+                            }, 200);
                             return;
                         }
                         
@@ -555,7 +554,7 @@ class Game {
                     setTimeout(() => {
                         this.modalManager.showGameOver(this.blocks.length);
                         this.gameOver = true;
-                    }, 800); // Задержка 0.8 секунды перед показом
+                    }, 800);
                     return;
                 }
             }
@@ -573,7 +572,7 @@ class Game {
                     setTimeout(() => {
                         this.modalManager.showGameOver(this.blocks.length);
                         this.gameOver = true;
-                    }, 800); // Задержка 0.8 секунды перед показом
+                    }, 800);
                 } else {
                     // Первый блок на полу - считается успешным приземлением
                     this.blocks.push({...this.currentBlock});
@@ -701,20 +700,30 @@ class Game {
         this.ctx.restore();
     }
 
-    gameLoop() {
+    gameLoop(timestamp) {
+        // Расчет deltaTime для независимой от FPS скорости
+        if (!this.lastTime) this.lastTime = timestamp;
+        this.deltaTime = (timestamp - this.lastTime) / 16.67; // Нормализуем к 60 FPS
+        this.lastTime = timestamp;
+        
+        // Ограничиваем deltaTime, чтобы избежать скачков при долгих паузах
+        if (this.deltaTime > 2) this.deltaTime = 1;
+        
         this.update();
         this.draw();
         
         if (!this.gameOver) {
-            requestAnimationFrame(() => this.gameLoop());
+            requestAnimationFrame((ts) => this.gameLoop(ts));
         } else {
             this.gameLoopRunning = false;
+            this.lastTime = 0; // Сбрасываем для рестарта
         }
     }
 
     startGameLoop() {
         this.gameLoopRunning = true;
-        this.gameLoop();
+        this.lastTime = 0; // Сбрасываем время
+        requestAnimationFrame((ts) => this.gameLoop(ts));
     }
 
     restart() {
@@ -724,6 +733,7 @@ class Game {
         this.currentBlock = null;
         this.fallingBlock = null;
         this.scoreElement.textContent = '0'; // Обнуляем отображение
+        this.lastTime = 0; // Сбрасываем время
         
         // Картинки уже загружены, не нужно загружать заново
         this.initCanvas();

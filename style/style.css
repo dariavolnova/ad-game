@@ -61,7 +61,6 @@ body {
     min-height: 100vh;
 }
 
-/* Добавить контейнер для основного контента */
 .main-content {
     display: flex;
     flex-direction: column;
@@ -110,8 +109,6 @@ canvas {
     font-style: normal;
 }
 
-/* ОБЩИЕ БРЕЙКПОИНТЫ ДЛЯ ВСЕХ ТЕКСТОВ */
-/* Мобильные устройства */
 @media (max-width: 768px) {
     .game-title {
         font-size: 28px;
@@ -154,7 +151,6 @@ canvas {
     }
 }
 
-/* Маленькие телефоны */
 @media (max-width: 480px) {
     .game-title {
         font-size: 22px;
@@ -192,7 +188,6 @@ canvas {
     }
 }
 
-/* Планшеты в портретной ориентации */
 @media (max-width: 1024px) and (min-width: 769px) {
     .hint {
         font-size: 17px;

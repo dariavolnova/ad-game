@@ -1,5 +1,3 @@
-// modal/modal.js - Модуль для работы с модальными окнами с анимациями
-
 class ModalManager {
     constructor() {
         this.modal = null;

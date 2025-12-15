@@ -1,5 +1,3 @@
-// script.js - Точка входа в игру
-
 // Ждем загрузки DOM и модальных окон
 document.addEventListener('DOMContentLoaded', async () => {
     // Инициализируем модальные окна

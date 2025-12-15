@@ -1,35 +1,8 @@
-/* modal/modal.css - полная версия */
-
-.modal {
-    display: flex !important; /* Меняем на flex, но скрываем через opacity */
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.4s ease, visibility 0.4s ease;
-}
-
-.modal.show {
-    opacity: 1;
-    visibility: visible;
-}
-
-.modal-content {
-    transform: translateY(30px);
-    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.1s;
-    opacity: 0;
-}
-
-.modal.show .modal-content {
-    transform: translateY(0);
-    opacity: 1;
-}
-
-/* Для успешной модалки отдельная задержка */
 .modal-content.success {
     transition-delay: 0.15s;
 }
 
 .modal {
-    /* display: none; */
     position: fixed;
     top: 0;
     left: 0;
@@ -40,9 +13,16 @@
     justify-content: center;
     align-items: center;
     font-family: 'Burger King Flame', Arial, sans-serif;
+    display: flex !important;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.4s ease, visibility 0.4s ease;
 }
 
 .modal-content {
+    transform: translateY(30px);
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.1s;
+    opacity: 0;
     background: #F5EBDC;
     padding: 30px;
     border-radius: 20px;
@@ -52,26 +32,33 @@
     margin: 20px;
     display: flex;
     flex-direction: column;
-    min-height: 400px; /* Фиксированная высота для всех модалок */
+    min-height: 400px;
 }
 
-/* Заголовок */
+.modal.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal.show .modal-content {
+    transform: translateY(0);
+    opacity: 1;
+}
+
 .modal-content h2 {
     color: #502314;
     margin: 0 0 20px 0;
     font-size: 36px;
 }
 
-/* Блок с картинкой и текстом для проигрыша */
 .result-block {
-    flex-grow: 1; /* Занимает все пространство между заголовком и кнопкой */
+    flex-grow: 1; 
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
 }
 
-/* Картинка грустного смайла */
 .sad-image {
     max-width: 200px;
     max-height: 200px;
@@ -93,12 +80,10 @@
     font-size: 28px;
 }
 
-/* Блок для успешного окна */
 .success-header {
     margin-bottom: 10px;
 }
 
-/* Фото whopper */
 .whopper-image {
     width: 50vw;
     max-width: 300px;
@@ -108,7 +93,6 @@
     margin: 0 auto 15px auto;
 }
 
-/* Контейнер контента для успешного окна */
 .success-content {
     flex-grow: 1;
     display: flex;
@@ -116,7 +100,6 @@
     justify-content: center;
 }
 
-/* Промокод */
 .promo-code {
     padding: 15px;
     border-radius: 30px;
@@ -147,12 +130,10 @@
     transition: background-color 0.2s ease;
 }
 
-/* Эффект при наведении на промокод */
 .code:hover {
     background: rgba(245, 133, 56, 0.2);
 }
 
-/* Кнопки - всегда внизу модалки */
 .modal-button {
     background: #F58538;
     color: #F5EBDC;
@@ -162,16 +143,14 @@
     border-radius: 30px;
     cursor: pointer;
     font-family: 'Burger King Flame', Arial, sans-serif;
-    margin-top: auto; /* Прижимает кнопку к низу */
+    margin-top: auto;
     align-self: center;
 }
 
-/* Кнопка для успешного окна */
 .modal-button.success-button {
     background: #502314;
 }
 
-/* Уведомление о копировании */
 .copy-notification {
     position: fixed;
     bottom: 20px;
@@ -197,7 +176,6 @@
     transform: translateX(-50%) translateY(0);
 }
 
-/* БРЕЙКПОИНТЫ */
 @media (max-width: 768px) {
     .modal-content {
         padding: 25px;
@@ -208,11 +186,6 @@
         font-size: 32px;
         margin-bottom: 15px;
     }
-    
-    /* .sad-image {
-        max-width: 200px;
-        max-height: 200px;
-    } */
     
     .result-block p {
         font-size: 20px;
@@ -259,14 +232,7 @@
         font-size: 28px;
         margin-bottom: 10px;
     }
-    
-    /* .sad-image {
-        max-width: 200px;
-        max-height: 200px;
-        min-width: 80px;
-        min-height: 80px;
-    } */
-    
+
     .result-block p {
         font-size: 18px;
     }
@@ -311,7 +277,6 @@
     }
 }
 
-/* Для очень маленьких экранов */
 @media (max-width: 360px) {
     .modal-content {
         min-height: 300px;
