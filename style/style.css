@@ -1,0 +1,210 @@
+.header {
+    background-color: #FCF6EC;
+    width: 100%;
+    padding: 15px 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.header-content {
+    max-width: 800px;
+    width: 95%;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 10px;
+}
+
+.logo-icon {
+    height: 80px;
+    width: auto;
+}
+
+.header-left {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.game-title {
+    color: #502314;
+    font-family: 'Burger King Flame', Arial, sans-serif;
+    font-size: 32px;
+    font-weight: bold;
+}
+
+.site-link {
+    color: #F58538;
+    font-family: 'Burger King Flame', Arial, sans-serif;
+    text-decoration: none;
+    padding: 8px 16px;
+    border: 2px solid #F58538;
+    border-radius:30px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 20px;
+}
+
+.link-icon {
+    height: 20px;
+    width: auto;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    background: #F5EBDC;
+    font-family: 'Burger King Flame', Arial, sans-serif;
+    min-height: 100vh;
+}
+
+/* Добавить контейнер для основного контента */
+.main-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+canvas {
+    background: #FCF6EC;
+    border-radius: 20px;
+    display: block;
+    max-width: 95%;
+    max-height: 70vh;
+    width: 800px;
+    height: 600px;
+    margin: 20px auto;
+}
+
+.text {
+    color: #502314;
+    text-align: center;
+    padding: 10px;
+    width: 90%;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.score {
+    font-size: 24px;
+    font-weight: bold;
+    margin-top: 10px;
+    color: #D62300;
+}
+
+.hint {
+    font-size: 18px;
+    color: #8B4513;
+    margin-top: 5px;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'Burger King Flame';
+    src: url('../fonts/Flame-Regular.otf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+/* ОБЩИЕ БРЕЙКПОИНТЫ ДЛЯ ВСЕХ ТЕКСТОВ */
+/* Мобильные устройства */
+@media (max-width: 768px) {
+    .game-title {
+        font-size: 28px;
+    }
+    
+    .header-left {
+        gap: 10px;
+    }
+
+    .site-link {
+        font-size: 18px;
+        padding: 6px 12px;
+    }
+    
+    .score {
+        font-size: 20px;
+    }
+    
+    .hint {
+        font-size: 16px;
+    }
+    
+    .logo-icon {
+        height: 60px;
+    }
+    
+    .link-icon {
+        height: 18px;
+    }
+    
+    canvas {
+        width: 95vw;
+        height: 60vh;
+        border-radius: 15px;
+        margin-top: 10px;
+    }
+    
+    .text {
+        padding: 5px;
+    }
+}
+
+/* Маленькие телефоны */
+@media (max-width: 480px) {
+    .game-title {
+        font-size: 22px;
+    }
+    
+    .header-left {
+        gap: 8px;
+    }
+
+    .site-link {
+        font-size: 16px;
+        padding: 5px 10px;
+        gap: 5px;
+    }
+    
+    .score {
+        font-size: 18px;
+    }
+    
+    .hint {
+        font-size: 14px;
+    }
+    
+    .logo-icon {
+        height: 50px;
+    }
+    
+    .link-icon {
+        height: 16px;
+    }
+    
+    canvas {
+        height: 55vh;
+        border-radius: 10px;
+    }
+}
+
+/* Планшеты в портретной ориентации */
+@media (max-width: 1024px) and (min-width: 769px) {
+    .hint {
+        font-size: 17px;
+    }
+}
+
+@media (max-height: 700px) {
+    canvas {
+        height: 50vh;
+    }
+    
+    .text {
+        padding: 5px 0;
+    }
+}

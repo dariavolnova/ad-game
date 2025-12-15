@@ -1,0 +1,341 @@
+/* modal/modal.css - полная версия */
+
+.modal {
+    display: flex !important; /* Меняем на flex, но скрываем через opacity */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.4s ease, visibility 0.4s ease;
+}
+
+.modal.show {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal-content {
+    transform: translateY(30px);
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.1s;
+    opacity: 0;
+}
+
+.modal.show .modal-content {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+/* Для успешной модалки отдельная задержка */
+.modal-content.success {
+    transition-delay: 0.15s;
+}
+
+.modal {
+    /* display: none; */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+    font-family: 'Burger King Flame', Arial, sans-serif;
+}
+
+.modal-content {
+    background: #F5EBDC;
+    padding: 30px;
+    border-radius: 20px;
+    text-align: center;
+    max-width: 500px;
+    width: 80%;
+    margin: 20px;
+    display: flex;
+    flex-direction: column;
+    min-height: 400px; /* Фиксированная высота для всех модалок */
+}
+
+/* Заголовок */
+.modal-content h2 {
+    color: #502314;
+    margin: 0 0 20px 0;
+    font-size: 36px;
+}
+
+/* Блок с картинкой и текстом для проигрыша */
+.result-block {
+    flex-grow: 1; /* Занимает все пространство между заголовком и кнопкой */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Картинка грустного смайла */
+.sad-image {
+    max-width: 200px;
+    max-height: 200px;
+    min-width: 150px;
+    min-height: 150px;
+    object-fit: contain;
+    margin-bottom: 15px;
+}
+
+.result-block p {
+    color: #502314;
+    font-size: 24px;
+    margin: 0;
+}
+
+#finalScore {
+    color: #D62300;
+    font-weight: bold;
+    font-size: 28px;
+}
+
+/* Блок для успешного окна */
+.success-header {
+    margin-bottom: 10px;
+}
+
+/* Фото whopper */
+.whopper-image {
+    width: 50vw;
+    max-width: 300px;
+    min-width: 180px;
+    height: auto;
+    object-fit: contain;
+    margin: 0 auto 15px auto;
+}
+
+/* Контейнер контента для успешного окна */
+.success-content {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+/* Промокод */
+.promo-code {
+    padding: 15px;
+    border-radius: 30px;
+    margin: 20px 0;
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.promo-code p {
+    margin: 0 0 10px 0;
+    color: #502314;
+    font-size: 20px;
+}
+
+.code {
+    background: rgba(245, 133, 56, 0.1);
+    font-size: 28px;
+    font-weight: bold;
+    color: #D62300;
+    border: 2px dashed #F58538;
+    padding: 12px 20px;
+    border-radius: 20px;
+    letter-spacing: 2px;
+    font-family: 'Burger King Flame', Arial, sans-serif;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+/* Эффект при наведении на промокод */
+.code:hover {
+    background: rgba(245, 133, 56, 0.2);
+}
+
+/* Кнопки - всегда внизу модалки */
+.modal-button {
+    background: #F58538;
+    color: #F5EBDC;
+    border: none;
+    padding: 15px 30px;
+    font-size: 22px;
+    border-radius: 30px;
+    cursor: pointer;
+    font-family: 'Burger King Flame', Arial, sans-serif;
+    margin-top: auto; /* Прижимает кнопку к низу */
+    align-self: center;
+}
+
+/* Кнопка для успешного окна */
+.modal-button.success-button {
+    background: #502314;
+}
+
+/* Уведомление о копировании */
+.copy-notification {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%) translateY(10px);
+    background-color: rgba(80, 35, 20, 0.9);
+    color: #F5EBDC;
+    padding: 12px 24px;
+    border-radius: 30px;
+    font-family: 'Burger King Flame', Arial, sans-serif;
+    font-size: 16px;
+    z-index: 2000;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    white-space: nowrap;
+}
+
+.copy-notification.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0);
+}
+
+/* БРЕЙКПОИНТЫ */
+@media (max-width: 768px) {
+    .modal-content {
+        padding: 25px;
+        min-height: 350px;
+    }
+    
+    .modal-content h2 {
+        font-size: 32px;
+        margin-bottom: 15px;
+    }
+    
+    /* .sad-image {
+        max-width: 200px;
+        max-height: 200px;
+    } */
+    
+    .result-block p {
+        font-size: 20px;
+    }
+    
+    #finalScore {
+        font-size: 24px;
+    }
+    
+    .whopper-image {
+        max-width: 250px;
+        margin-bottom: 10px;
+    }
+    
+    .promo-code p {
+        font-size: 18px;
+    }
+    
+    .code {
+        font-size: 24px;
+        padding: 10px 16px;
+    }
+    
+    .modal-button {
+        font-size: 20px;
+        padding: 12px 25px;
+    }
+    
+    .copy-notification {
+        padding: 10px 20px;
+        font-size: 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    .modal-content {
+        padding: 20px;
+        min-height: 320px;
+        border-radius: 15px;
+        margin: 15px;
+    }
+    
+    .modal-content h2 {
+        font-size: 28px;
+        margin-bottom: 10px;
+    }
+    
+    /* .sad-image {
+        max-width: 200px;
+        max-height: 200px;
+        min-width: 80px;
+        min-height: 80px;
+    } */
+    
+    .result-block p {
+        font-size: 18px;
+    }
+    
+    #finalScore {
+        font-size: 22px;
+    }
+    
+    .whopper-image {
+        max-width: 200px;
+        min-width: 150px;
+        margin-bottom: 5px;
+    }
+    
+    .promo-code {
+        padding: 12px;
+        margin: 15px 0;
+    }
+    
+    .promo-code p {
+        font-size: 16px;
+        margin-bottom: 8px;
+    }
+    
+    .code {
+        font-size: 22px;
+        padding: 8px 14px;
+        letter-spacing: 1px;
+    }
+    
+    .modal-button {
+        font-size: 18px;
+        padding: 10px 20px;
+    }
+    
+    .copy-notification {
+        padding: 8px 16px;
+        font-size: 14px;
+        max-width: 90%;
+        white-space: normal;
+        text-align: center;
+    }
+}
+
+/* Для очень маленьких экранов */
+@media (max-width: 360px) {
+    .modal-content {
+        min-height: 300px;
+    }
+    
+    .modal-content h2 {
+        font-size: 26px;
+    }
+    
+    .sad-image {
+        max-width: 100px;
+        max-height: 100px;
+    }
+    
+    .result-block p {
+        font-size: 16px;
+    }
+    
+    .whopper-image {
+        max-width: 180px;
+    }
+    
+    .code {
+        font-size: 20px;
+        padding: 6px 12px;
+    }
+}

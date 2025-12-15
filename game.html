@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Собери Воппер</title>
+    <link rel="stylesheet" href="style/style.css">
+    <link rel="stylesheet" href="style/modal.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+    <!-- Хедер -->
+    <header class="header">
+        <div class="header-content">
+            <div class="header-left">
+                <img src="image/icon.png" alt="Burger King" class="logo-icon">
+                <span class="game-title">Собери свой воппер</span>
+            </div>
+            <a href="https://burgerkingrus.ru/" target="_blank" class="site-link">
+                <img src="image/web_icon.png" alt="Иконка" class="link-icon">
+                <span>Сайт</span>
+            </a>
+        </div>
+    </header>
+    
+    <!-- Основной контент -->
+    <div class="main-content">
+        <div class="text">
+            <p class="score">Этаж: <span id="score">0</span>/15</p>
+            <p class="hint">Соберите 15-этажный воппер, чтобы получить промокод!</p>
+        </div>
+        
+        <canvas id="game"></canvas>
+    </div>
+    
+    <!-- Подключаем модули в правильном порядке -->
+    <script src="script/modal.js"></script>
+    <script src="script/game.js"></script>
+    <script src="script/script.js"></script>
+</body>
+</html>
