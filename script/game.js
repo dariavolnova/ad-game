@@ -7,7 +7,7 @@ class Game {
         
         this.blocks = [];
         this.currentBlock = null;
-        this.blockCounter = 0; // Счетчик успешно приземленных блоков
+        this.blockCounter = 0;
         this.gameOver = false;
         this.baseBlockWidth = 200;
         this.baseBlockHeight = 30;
@@ -20,6 +20,9 @@ class Game {
         this.fallSpeed = 0;
         this.fallRotationCenter = { x: 0, y: 0 };
         this.fallDirection = 'right';
+        
+        // Падающие вниз блоки
+        this.fallingBlocks = [];
         
         // Для загрузки картинок
         this.blockImages = {};
@@ -45,30 +48,23 @@ class Game {
         this.preloadBlockImages();
         this.setupEventListeners();
         
-        // Начальное значение счетчика
         this.blockCounter = 0;
         this.scoreElement.textContent = this.blockCounter;
         
-        // Настройка колбэка для рестарта
         this.modalManager.setOnRestart(() => this.restart());
         
-        // Ждем загрузки картинок перед стартом игры
         const checkImagesLoaded = () => {
             if (this.imagesLoaded) {
-                // Картинки загружены, начинаем игру
                 this.currentBlock = this.createNewBlock();
                 this.startGameLoop();
             } else {
-                // Ждем еще
                 setTimeout(checkImagesLoaded, 100);
             }
         };
         
-        // Начинаем проверку
-        setTimeout(checkImagesLoaded, 100);
+        checkImagesLoaded();
     }
 
-    // Предзагрузка картинок блоков
     preloadBlockImages() {
         this.blockImages = {};
         this.blockSizes = {};
@@ -100,7 +96,6 @@ class Game {
                 console.error(`Ошибка загрузки: ${imageName}`);
                 this.imagesLoadedCount++;
                 
-                // Создаем fallback цветной блок
                 this.blockImages[imageName] = null;
                 this.blockSizes[imageName] = {
                     width: this.baseBlockWidth,
@@ -130,6 +125,12 @@ class Game {
         if (this.fallingBlock && this.fallingBlock.image) {
             this.updateBlockSize(this.fallingBlock);
         }
+        
+        this.fallingBlocks.forEach(block => {
+            if (block.image && this.blockSizes[block.image]) {
+                this.updateBlockSize(block);
+            }
+        });
     }
     
     updateBlockSize(block) {
@@ -174,6 +175,10 @@ class Game {
         if (this.currentBlock) {
             this.updateBlockSizeForResize(this.currentBlock);
         }
+        
+        this.fallingBlocks.forEach(block => {
+            this.updateBlockSizeForResize(block);
+        });
     }
     
     updateBlockSizeForResize(block) {
@@ -198,72 +203,46 @@ class Game {
             this.initCanvas();
         });
 
+        // Клавиша пробел
         document.addEventListener('keydown', (e) => {
             if (this.gameOver || !this.currentBlock || 
                 this.currentBlock.hasLanded || this.fallingBlock) return;
             
             if (e.code === 'Space' && !this.currentBlock.isFalling) {
-                this.currentBlock.isFalling = true;
-                this.currentBlock.isMoving = false;
-                this.currentBlock.speedY = 6;
+                this.dropCurrentBlock();
             }
         });
 
+        // Клик мышкой
         this.canvas.addEventListener('click', () => {
-            if (this.gameOver || this.fallingBlock) return;
-            
-            if (this.currentBlock && !this.currentBlock.isFalling && 
-                !this.currentBlock.hasLanded) {
-                this.currentBlock.isFalling = true;
-                this.currentBlock.isMoving = false;
-                this.currentBlock.speedY = 6;
-            }
+            this.handleTap();
         });
 
-        this.setupTouchControls();
+        // Тап на мобильных
+        this.canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            this.handleTap();
+        });
     }
 
-    setupTouchControls() {
-        let touchStartX = 0;
-        let touchStartY = 0;
+    // Обработчик тапа/клика
+    handleTap() {
+        if (this.gameOver || this.fallingBlock) return;
+        
+        if (this.currentBlock && !this.currentBlock.isFalling && 
+            !this.currentBlock.hasLanded) {
+            this.dropCurrentBlock();
+        }
+    }
 
-        this.canvas.addEventListener('touchstart', (e) => {
-            if (this.gameOver || !this.currentBlock || 
-                this.currentBlock.hasLanded || 
-                this.currentBlock.isFalling || this.fallingBlock) return;
-            
-            e.preventDefault();
-            const touch = e.touches[0];
-            touchStartX = touch.clientX;
-            touchStartY = touch.clientY;
-            
-            if (touch.clientY < this.canvas.height * 0.2) {
-                this.currentBlock.isFalling = true;
-                this.currentBlock.isMoving = false;
-                this.currentBlock.speedY = 6;
-            }
-        });
-
-        this.canvas.addEventListener('touchmove', (e) => {
-            if (this.gameOver || !this.currentBlock || 
-                this.currentBlock.hasLanded || 
-                this.currentBlock.isFalling || this.fallingBlock) return;
-            
-            e.preventDefault();
-            const touch = e.touches[0];
-            const deltaX = touch.clientX - touchStartX;
-            
-            if (Math.abs(deltaX) > 10) {
-                this.currentBlock.x += deltaX * 0.5;
-                
-                if (this.currentBlock.x < 0) this.currentBlock.x = 0;
-                if (this.currentBlock.x + this.currentBlock.width > this.canvas.width) {
-                    this.currentBlock.x = this.canvas.width - this.currentBlock.width;
-                }
-                
-                touchStartX = touch.clientX;
-            }
-        });
+    // Падение блока
+    dropCurrentBlock() {
+        if (this.currentBlock && !this.currentBlock.isFalling && 
+            !this.currentBlock.hasLanded) {
+            this.currentBlock.isFalling = true;
+            this.currentBlock.isMoving = false;
+            this.currentBlock.speedY = 6;
+        }
     }
 
     createNewBlock() {        
@@ -387,14 +366,43 @@ class Game {
         
         return false;
     }
+    
+    addFallingBlock(block) {
+        const fallingBlock = {
+            ...block,
+            x: block.x,
+            y: block.y,
+            width: block.width,
+            height: block.height,
+            realHeight: block.realHeight || block.height,
+            speedY: 8,
+            isFallingDown: true
+        };
+        
+        this.fallingBlocks.push(fallingBlock);
+    }
+    
+    updateFallingBlocks() {
+        for (let i = this.fallingBlocks.length - 1; i >= 0; i--) {
+            const block = this.fallingBlocks[i];
+            
+            block.speedY += 0.8 * this.deltaTime;
+            block.y += block.speedY * this.deltaTime;
+            
+            if (block.y > this.canvas.height + 200) {
+                this.fallingBlocks.splice(i, 1);
+            }
+        }
+    }
 
     update() {
         if (this.gameOver) return;
         
+        this.updateFallingBlocks();
+        
         if (this.fallingBlock) {
             if (this.updateFallAnimation()) {
                 setTimeout(() => {
-                    // Показываем текущий счетчик (успешно приземленных блоков)
                     this.modalManager.showGameOver(this.blockCounter);
                     this.gameOver = true;
                 }, 100);
@@ -411,6 +419,7 @@ class Game {
             return;
         }
         
+        // Блок движется влево-вправо автоматически (без управления игроком)
         if (this.currentBlock.isMoving && !this.currentBlock.isFalling) {
             this.currentBlock.x += this.currentBlock.speedX * this.deltaTime;
             
@@ -490,15 +499,15 @@ class Game {
                         return;
                     }
                 } else {
-                    // УПАЛ НА ДРУГОЙ БЛОК (не предыдущий) - СРАЗУ ПРОИГРЫШ
+                    // УПАЛ НА ДРУГОЙ БЛОК (не предыдущий)
                     this.currentBlock.y = collidedBlock.y - currentBlockRealHeight;
                     this.currentBlock.hasLanded = true;
                     this.currentBlock.isFalling = false;
                     this.currentBlock.isMoving = false;
-                    // НЕ добавляем в blocks, чтобы не считать этот блок
+                    
+                    this.addFallingBlock({...this.currentBlock});
                     
                     setTimeout(() => {
-                        // Показываем текущий счетчик (успешно приземленных блоков)
                         this.modalManager.showGameOver(this.blockCounter);
                         this.gameOver = true;
                     }, 800);
@@ -514,9 +523,9 @@ class Game {
                 this.currentBlock.isMoving = false;
                 
                 if (this.blocks.length > 0) {
-                    // НЕ добавляем в blocks, чтобы не считать этот упавший блок
+                    this.addFallingBlock({...this.currentBlock});
+                    
                     setTimeout(() => {
-                        // Показываем текущий счетчик (успешно приземленных блоков)
                         this.modalManager.showGameOver(this.blockCounter);
                         this.gameOver = true;
                     }, 800);
@@ -574,6 +583,15 @@ class Game {
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
         
         this.blocks.forEach(block => {
+            if (block.image) {
+                this.drawBlockImage(block);
+            } else {
+                this.ctx.fillStyle = block.color;
+                this.ctx.fillRect(block.x, block.y, block.width, block.height);
+            }
+        });
+        
+        this.fallingBlocks.forEach(block => {
             if (block.image) {
                 this.drawBlockImage(block);
             } else {
@@ -651,6 +669,7 @@ class Game {
     restart() {
         this.gameOver = false;
         this.blocks = [];
+        this.fallingBlocks = [];
         this.blockCounter = 0;
         this.currentBlock = null;
         this.fallingBlock = null;
