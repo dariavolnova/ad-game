@@ -11,7 +11,7 @@ class Game {
         this.gameOver = false;
         this.baseBlockWidth = 200;
         this.baseBlockHeight = 30;
-        this.baseSpeed = 6; // Увеличено с 3 до 6 (в 2 раза больше)
+        this.baseSpeed = 6;
         this.maxBlocks = 15;
         
         // Анимационные переменные
@@ -28,7 +28,7 @@ class Game {
         this.imagesToLoad = 8;
         this.imagesLoadedCount = 0;
         
-        // Адаптивные размеры (теперь без адаптации скорости)
+        // Адаптивные размеры
         this.blockWidth = 0;
         this.blockHeight = 0;
         
@@ -90,7 +90,6 @@ class Game {
                 
                 this.imagesLoadedCount++;
                 
-                // Проверяем, все ли картинки загружены
                 if (this.imagesLoadedCount === this.imagesToLoad) {
                     this.imagesLoaded = true;
                     this.updateAllBlockSizes();
@@ -117,50 +116,40 @@ class Game {
         }
     }
     
-    // Обновить размеры ВСЕХ блоков после загрузки картинок
     updateAllBlockSizes() {
-        // Обновить приземленные блоки
         this.blocks.forEach(block => {
             if (block.image && this.blockSizes[block.image]) {
                 this.updateBlockSize(block);
             }
         });
         
-        // Обновить текущий блок
         if (this.currentBlock && this.currentBlock.image) {
             this.updateBlockSize(this.currentBlock);
         }
         
-        // Обновить падающий блок если есть
         if (this.fallingBlock && this.fallingBlock.image) {
             this.updateBlockSize(this.fallingBlock);
         }
     }
     
-    // Обновить размеры конкретного блока на основе его картинки
     updateBlockSize(block) {
         if (block.image && this.blockSizes[block.image]) {
             const size = this.blockSizes[block.image];
             
-            // Сохраняем оригинальные размеры
             block.originalWidth = size.width;
             block.originalHeight = size.height;
             block.aspectRatio = size.ratio;
             
-            // Рассчитываем реальные размеры для коллайдера
             if (!block.width) block.width = this.baseBlockWidth;
             
-            // Высота рассчитывается из ширины и соотношения сторон
             block.height = block.width / block.aspectRatio;
             
-            // Если высота слишком маленькая, увеличиваем пропорционально
             const minHeight = this.baseBlockHeight;
             if (block.height < minHeight) {
                 block.height = minHeight;
                 block.width = block.height * block.aspectRatio;
             }
             
-            // Также обновляем реальную высоту (используется для коллайдеров)
             block.realHeight = block.height;
         }
     }
@@ -175,41 +164,29 @@ class Game {
         this.canvas.width = maxCanvasWidth;
         this.canvas.height = maxCanvasHeight;
         
-        // Базовые размеры для расчета (без адаптации скорости)
         this.blockWidth = Math.min(this.baseBlockWidth, this.canvas.width * 0.3);
         this.blockHeight = this.baseBlockHeight * (this.canvas.height / 700);
         
-        // Обновляем размеры всех существующих блоков
         this.blocks.forEach(block => {
             this.updateBlockSizeForResize(block);
         });
         
-        // Обновляем текущий блок
         if (this.currentBlock) {
             this.updateBlockSizeForResize(this.currentBlock);
         }
     }
     
-    // Обновить размер блока при ресайзе
     updateBlockSizeForResize(block) {
         if (!block.image || !this.blockSizes[block.image]) return;
         
         const size = this.blockSizes[block.image];
-        const scaleX = this.canvas.width / 800; // Базовый масштаб
+        const scaleX = this.canvas.width / 800;
         
-        // Обновляем ширину пропорционально ресайзу
         block.width = this.blockWidth * scaleX;
-        
-        // Рассчитываем высоту на основе соотношения сторон
         block.height = block.width / size.ratio;
-        
-        // Корректируем позицию X
         block.x = block.x * scaleX;
-        
-        // Обновляем реальную высоту
         block.realHeight = block.height;
         
-        // Ограничиваем позицию
         if (block.x < 0) block.x = 0;
         if (block.x + block.width > this.canvas.width) {
             block.x = this.canvas.width - block.width;
@@ -217,12 +194,10 @@ class Game {
     }
 
     setupEventListeners() {
-        // Ресайз окна
         window.addEventListener('resize', () => {
             this.initCanvas();
         });
 
-        // Управление клавиатурой
         document.addEventListener('keydown', (e) => {
             if (this.gameOver || !this.currentBlock || 
                 this.currentBlock.hasLanded || this.fallingBlock) return;
@@ -230,11 +205,10 @@ class Game {
             if (e.code === 'Space' && !this.currentBlock.isFalling) {
                 this.currentBlock.isFalling = true;
                 this.currentBlock.isMoving = false;
-                this.currentBlock.speedY = 6; // Увеличено с 3 до 6 (в 2 раза больше)
+                this.currentBlock.speedY = 6;
             }
         });
 
-        // Клик для падения
         this.canvas.addEventListener('click', () => {
             if (this.gameOver || this.fallingBlock) return;
             
@@ -242,11 +216,10 @@ class Game {
                 !this.currentBlock.hasLanded) {
                 this.currentBlock.isFalling = true;
                 this.currentBlock.isMoving = false;
-                this.currentBlock.speedY = 6; // Увеличено с 3 до 6
+                this.currentBlock.speedY = 6;
             }
         });
 
-        // Сенсорное управление
         this.setupTouchControls();
     }
 
@@ -267,7 +240,7 @@ class Game {
             if (touch.clientY < this.canvas.height * 0.2) {
                 this.currentBlock.isFalling = true;
                 this.currentBlock.isMoving = false;
-                this.currentBlock.speedY = 6; // Увеличено с 3 до 6
+                this.currentBlock.speedY = 6;
             }
         });
 
@@ -293,34 +266,22 @@ class Game {
         });
     }
 
-    // Игровые методы
     createNewBlock() {        
-        // НЕ увеличиваем счетчик здесь! Счетчик увеличивается только при успешном приземлении
-        
-        // Отображаем текущий количество успешно установленных блоков
         this.scoreElement.textContent = this.blockCounter;
         
-        // Случайное направление движения
         const startDirection = Math.random() > 0.5 ? 1 : -1;
         
-        // Определяем номер картинки в зависимости от позиции блока
         let blockNumber;
-        
-        // Следующий блок, который будет установлен
         const nextBlockNumber = this.blockCounter + 1;
         
-        // ПЕРВЫЙ блок (block1) - будет когда blockCounter = 0
         if (nextBlockNumber === 1) {
             blockNumber = 1;
         }
-        // ПОСЛЕДНИЙ блок (15-й) (block8) - ВЫИГРЫШ
         else if (nextBlockNumber === this.maxBlocks) {
             blockNumber = 8;
         }
-        // Блоки между первым и последним (2-14) - случайные block2-7
         else {
-            // Генерируем случайное число от 2 до 7 (block2.png до block7.png)
-            blockNumber = Math.floor(Math.random() * 6) + 2; // 2, 3, 4, 5, 6, 7
+            blockNumber = Math.floor(Math.random() * 6) + 2;
         }
         
         const block = {
@@ -332,7 +293,7 @@ class Game {
             originalHeight: null,
             aspectRatio: null,
             realHeight: this.baseBlockHeight,
-            speedX: this.baseSpeed * startDirection, // Теперь 6 вместо 3
+            speedX: this.baseSpeed * startDirection,
             speedY: 0,
             color: this.getRandomColor(),
             image: `assets/block${blockNumber}.png`,
@@ -341,10 +302,9 @@ class Game {
             isMoving: true,
             isFalling: false,
             hasLanded: false,
-            willBeNumber: nextBlockNumber // Номер, который получит блок при успешном приземлении
+            willBeNumber: nextBlockNumber
         };
         
-        // Обновляем размеры блока на основе его картинки
         this.updateBlockSize(block);
         
         return block;
@@ -357,11 +317,9 @@ class Game {
     }
 
     isBlockOnPrevious(block, previousBlock) {
-        // Используем реальные размеры блоков для проверки столкновений
         const blockRealHeight = block.realHeight || block.height;
         const prevRealHeight = previousBlock.realHeight || previousBlock.height;
         
-        // Минимальное перекрытие - 50% от ширины предыдущего блока
         const minOverlap = previousBlock.width * 0.5;
         
         const overlapLeft = Math.max(block.x, previousBlock.x);
@@ -391,12 +349,12 @@ class Game {
             this.fallRotationCenter.x = previousBlock.x + overlapInfo.overlap;
             this.fallRotationCenter.y = previousBlock.y;
             this.fallAngle = 0;
-            this.fallSpeed = -0.16; // Увеличено с -0.08 до -0.16
+            this.fallSpeed = -0.16;
         } else {
             this.fallRotationCenter.x = previousBlock.x + previousBlock.width - overlapInfo.overlap;
             this.fallRotationCenter.y = previousBlock.y;
             this.fallAngle = 0;
-            this.fallSpeed = 0.16; // Увеличено с 0.08 до 0.16
+            this.fallSpeed = 0.16;
         }
         
         const instability = 1 - (overlapInfo.overlap / overlapInfo.minOverlap);
@@ -411,12 +369,12 @@ class Game {
         this.fallAngle += this.fallSpeed * 10 * this.deltaTime;
         
         if (this.fallDirection === 'left') {
-            this.fallSpeed -= 0.006 * this.deltaTime; // Увеличено с 0.003 до 0.006
+            this.fallSpeed -= 0.006 * this.deltaTime;
         } else {
-            this.fallSpeed += 0.006 * this.deltaTime; // Увеличено с 0.003 до 0.006
+            this.fallSpeed += 0.006 * this.deltaTime;
         }
         
-        this.fallRotationCenter.y += Math.abs(this.fallSpeed) * 10 * this.deltaTime; // Увеличено с 5 до 10
+        this.fallRotationCenter.y += Math.abs(this.fallSpeed) * 10 * this.deltaTime;
         
         const isFallen = (this.fallDirection === 'left' && this.fallAngle <= -90) || 
                          (this.fallDirection === 'right' && this.fallAngle >= 90) ||
@@ -433,12 +391,11 @@ class Game {
     update() {
         if (this.gameOver) return;
         
-        // Анимация падения
         if (this.fallingBlock) {
             if (this.updateFallAnimation()) {
-                // ПРОИГРЫШ: показываем окно с задержкой
                 setTimeout(() => {
-                    this.modalManager.showGameOver(this.blocks.length);
+                    // Показываем текущий счетчик (успешно приземленных блоков)
+                    this.modalManager.showGameOver(this.blockCounter);
                     this.gameOver = true;
                 }, 100);
             }
@@ -454,7 +411,6 @@ class Game {
             return;
         }
         
-        // Движение влево-вправо (с учетом deltaTime для одинаковой скорости)
         if (this.currentBlock.isMoving && !this.currentBlock.isFalling) {
             this.currentBlock.x += this.currentBlock.speedX * this.deltaTime;
             
@@ -468,22 +424,18 @@ class Game {
             }
         }
         
-        // Падение (с учетом deltaTime)
         if (this.currentBlock.isFalling) {
             this.currentBlock.y += this.currentBlock.speedY * this.deltaTime;
-            this.currentBlock.speedY += 1.0 * this.deltaTime; // Увеличено с 0.5 до 1.0
+            this.currentBlock.speedY += 1.0 * this.deltaTime;
             
             let collision = false;
             let collidedBlock = null;
             
-            // Получаем реальную высоту текущего блока
             const currentBlockRealHeight = this.currentBlock.realHeight || this.currentBlock.height;
             
             for (let otherBlock of this.blocks) {
-                // Получаем реальную высоту другого блока
                 const otherBlockRealHeight = otherBlock.realHeight || otherBlock.height;
                 
-                // ИСПРАВЛЕННАЯ ПРОВЕРКА СТОЛКНОВЕНИЙ с учетом реальных высот:
                 if (this.currentBlock.y + currentBlockRealHeight >= otherBlock.y &&
                     this.currentBlock.y <= otherBlock.y + otherBlockRealHeight &&
                     this.currentBlock.x + this.currentBlock.width >= otherBlock.x &&
@@ -492,13 +444,11 @@ class Game {
                     collision = true;
                     collidedBlock = otherBlock;
                     
-                    // Позиционируем блок с учетом его реальной высоты
                     this.currentBlock.y = otherBlock.y - currentBlockRealHeight;
                     break;
                 }
             }
             
-            // Столкновение с блоками
             if (collision && collidedBlock) {
                 const previousBlock = this.blocks[this.blocks.length - 1];
                 
@@ -506,20 +456,17 @@ class Game {
                     const overlapInfo = this.isBlockOnPrevious(this.currentBlock, previousBlock);
                     
                     if (overlapInfo.isValid) {
-                        // УСТОЙЧИВО - блок успешно приземлился!
+                        // УСПЕШНОЕ ПРИЗЕМЛЕНИЕ
                         this.currentBlock.hasLanded = true;
                         this.currentBlock.isFalling = false;
                         this.currentBlock.isMoving = false;
                         this.blocks.push({...this.currentBlock});
                         
-                        // УВЕЛИЧИВАЕМ СЧЕТЧИК ТОЛЬКО ЗДЕСЬ - когда блок успешно приземлился
                         this.blockCounter++;
-                        this.scoreElement.textContent = this.blockCounter; // Обновляем отображение
+                        this.scoreElement.textContent = this.blockCounter;
                         
-                        // Проверяем, не выиграли ли мы (достигли 15 блоков)
                         if (this.blockCounter >= this.maxBlocks) {
                             this.gameOver = true;
-                            // ВЫИГРЫШ: показываем окно с задержкой
                             setTimeout(() => {
                                 this.modalManager.showSuccess();
                             }, 200);
@@ -531,7 +478,7 @@ class Game {
                         }, 100);
                         return;
                     } else {
-                        // НЕУСТОЙЧИВО - блок упадет
+                        // НЕУДАЧНОЕ ПРИЗЕМЛЕНИЕ (упадет с башни)
                         this.currentBlock.hasLanded = true;
                         this.currentBlock.isFalling = false;
                         this.currentBlock.isMoving = false;
@@ -543,16 +490,16 @@ class Game {
                         return;
                     }
                 } else {
-                    // Не на предыдущий блок - сразу проигрыш
+                    // УПАЛ НА ДРУГОЙ БЛОК (не предыдущий) - СРАЗУ ПРОИГРЫШ
                     this.currentBlock.y = collidedBlock.y - currentBlockRealHeight;
                     this.currentBlock.hasLanded = true;
                     this.currentBlock.isFalling = false;
                     this.currentBlock.isMoving = false;
-                    this.blocks.push({...this.currentBlock});
+                    // НЕ добавляем в blocks, чтобы не считать этот блок
                     
-                    // ПРОИГРЫШ: показываем окно с задержкой
                     setTimeout(() => {
-                        this.modalManager.showGameOver(this.blocks.length);
+                        // Показываем текущий счетчик (успешно приземленных блоков)
+                        this.modalManager.showGameOver(this.blockCounter);
                         this.gameOver = true;
                     }, 800);
                     return;
@@ -567,17 +514,16 @@ class Game {
                 this.currentBlock.isMoving = false;
                 
                 if (this.blocks.length > 0) {
-                    this.blocks.push({...this.currentBlock});
-                    // ПРОИГРЫШ: показываем окно с задержкой
+                    // НЕ добавляем в blocks, чтобы не считать этот упавший блок
                     setTimeout(() => {
-                        this.modalManager.showGameOver(this.blocks.length);
+                        // Показываем текущий счетчик (успешно приземленных блоков)
+                        this.modalManager.showGameOver(this.blockCounter);
                         this.gameOver = true;
                     }, 800);
                 } else {
                     // Первый блок на полу - считается успешным приземлением
                     this.blocks.push({...this.currentBlock});
                     
-                    // УВЕЛИЧИВАЕМ СЧЕТЧИК для первого блока
                     this.blockCounter++;
                     this.scoreElement.textContent = this.blockCounter;
                     
@@ -590,9 +536,7 @@ class Game {
         }
     }
 
-    // Метод для отрисовки PNG блока с сохранением пропорций
     drawBlockImage(block) {
-        // Если картинки не загружены - рисуем цветной блок
         if (!this.imagesLoaded || !this.blockImages || !this.blockImages[block.image]) {
             this.ctx.fillStyle = block.color || '#D62300';
             this.ctx.fillRect(block.x, block.y, block.width, block.height);
@@ -606,11 +550,9 @@ class Game {
             return { x: block.x, y: block.y, width: block.width, height: block.height };
         }
         
-        // Используем уже рассчитанные размеры блока
         const targetWidth = block.width;
         const targetHeight = block.height;
         
-        // Рисуем картинку
         this.ctx.drawImage(
             img, 
             block.x, 
@@ -619,7 +561,6 @@ class Game {
             targetHeight
         );
         
-        // Возвращаем реальные координаты и размеры отрисованной картинки
         return { 
             x: block.x, 
             y: block.y, 
@@ -629,43 +570,28 @@ class Game {
     }
     
     draw() {
-        // Очистка
         this.ctx.fillStyle = '#FCF6EC';
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
         
-        // Приземленные блоки
         this.blocks.forEach(block => {
-            let renderInfo;
-            
             if (block.image) {
-                renderInfo = this.drawBlockImage(block);
+                this.drawBlockImage(block);
             } else {
                 this.ctx.fillStyle = block.color;
                 this.ctx.fillRect(block.x, block.y, block.width, block.height);
-                renderInfo = { x: block.x, y: block.y, width: block.width, height: block.height };
             }
         });
         
-        // Текущий падающий блок
         if (this.currentBlock && !this.currentBlock.hasLanded) {
-            let renderInfo;
-            
             if (this.currentBlock.image) {
-                renderInfo = this.drawBlockImage(this.currentBlock);
+                this.drawBlockImage(this.currentBlock);
             } else {
                 this.ctx.fillStyle = this.currentBlock.color;
                 this.ctx.fillRect(this.currentBlock.x, this.currentBlock.y, 
                                 this.currentBlock.width, this.currentBlock.height);
-                renderInfo = { 
-                    x: this.currentBlock.x, 
-                    y: this.currentBlock.y, 
-                    width: this.currentBlock.width, 
-                    height: this.currentBlock.height 
-                };
             }
         }
         
-        // Анимированное падение
         this.drawFallingBlock();
     }
 
@@ -684,7 +610,6 @@ class Game {
         let renderWidth = this.fallingBlock.width;
         let renderHeight = this.fallingBlock.height;
         
-        // Если есть картинка
         if (this.fallingBlock.image && this.imagesLoaded && 
             this.blockImages && this.blockImages[this.fallingBlock.image]) {
             
@@ -692,7 +617,6 @@ class Game {
             
             this.ctx.drawImage(img, renderX, renderY, renderWidth, renderHeight);
         } else {
-            // Fallback на цветной блок
             this.ctx.fillStyle = this.fallingBlock.color;
             this.ctx.fillRect(renderX, renderY, renderWidth, renderHeight);
         }
@@ -701,12 +625,10 @@ class Game {
     }
 
     gameLoop(timestamp) {
-        // Расчет deltaTime для независимой от FPS скорости
         if (!this.lastTime) this.lastTime = timestamp;
-        this.deltaTime = (timestamp - this.lastTime) / 16.67; // Нормализуем к 60 FPS
+        this.deltaTime = (timestamp - this.lastTime) / 16.67;
         this.lastTime = timestamp;
         
-        // Ограничиваем deltaTime, чтобы избежать скачков при долгих паузах
         if (this.deltaTime > 2) this.deltaTime = 1;
         
         this.update();
@@ -716,29 +638,27 @@ class Game {
             requestAnimationFrame((ts) => this.gameLoop(ts));
         } else {
             this.gameLoopRunning = false;
-            this.lastTime = 0; // Сбрасываем для рестарта
+            this.lastTime = 0;
         }
     }
 
     startGameLoop() {
         this.gameLoopRunning = true;
-        this.lastTime = 0; // Сбрасываем время
+        this.lastTime = 0;
         requestAnimationFrame((ts) => this.gameLoop(ts));
     }
 
     restart() {
         this.gameOver = false;
         this.blocks = [];
-        this.blockCounter = 0; // Сбрасываем счетчик
+        this.blockCounter = 0;
         this.currentBlock = null;
         this.fallingBlock = null;
-        this.scoreElement.textContent = '0'; // Обнуляем отображение
-        this.lastTime = 0; // Сбрасываем время
+        this.scoreElement.textContent = '0';
+        this.lastTime = 0;
         
-        // Картинки уже загружены, не нужно загружать заново
         this.initCanvas();
         
-        // Создаем первый блок
         this.currentBlock = this.createNewBlock();
         
         if (!this.gameLoopRunning) {
