@@ -4,19 +4,16 @@ class ModalManager {
         this.successModal = null;
         this.onRestartCallback = null;
         this.notification = null;
-        this.isAnimating = false; // Флаг для предотвращения двойных анимаций
+        this.isAnimating = false; 
     }
 
-    // Инициализация модальных окон
     init() {
         this.createModals();
         this.createNotification();
         this.setupEventListeners();
     }
 
-    // Создание модальных окон
     createModals() {
-        // Создаем основное модальное окно (проигрыш)
         this.modal = document.createElement('div');
         this.modal.id = 'gameOverModal';
         this.modal.className = 'modal';
@@ -31,7 +28,6 @@ class ModalManager {
             </div>
         `;  
 
-        // Создаем модальное окно успеха
         this.successModal = document.createElement('div');
         this.successModal.id = 'successModal';
         this.successModal.className = 'modal';
@@ -55,7 +51,6 @@ class ModalManager {
         document.body.appendChild(this.successModal);
     }
 
-    // Создание уведомления
     createNotification() {
         this.notification = document.createElement('div');
         this.notification.className = 'copy-notification';
@@ -63,22 +58,18 @@ class ModalManager {
         document.body.appendChild(this.notification);
     }
 
-    // Показать уведомление
     showNotification() {
         this.notification.classList.add('show');
         
-        // Автоматически скрыть через 2 секунды
         setTimeout(() => {
             this.hideNotification();
         }, 2000);
     }
 
-    // Скрыть уведомление
     hideNotification() {
         this.notification.classList.remove('show');
     }
 
-    // Настройка обработчиков событий
     setupEventListeners() {
         document.addEventListener('click', (e) => {
             if (e.target && e.target.id === 'restartButton') {
@@ -95,14 +86,12 @@ class ModalManager {
                 }
             }
             
-            // Копирование промокода
             if (e.target && (e.target.id === 'promoCode' || e.target.classList.contains('code'))) {
                 this.copyPromoCode();
             }
         });
     }
 
-    // Функция копирования промокода
     copyPromoCode() {
         const promoText = 'BURGER50';
         
@@ -110,7 +99,6 @@ class ModalManager {
             this.showNotification();
         }).catch(err => {
             console.error('Ошибка копирования:', err);
-            // Fallback для старых браузеров
             const textArea = document.createElement('textarea');
             textArea.value = promoText;
             document.body.appendChild(textArea);
@@ -122,20 +110,17 @@ class ModalManager {
         });
     }
 
-    // Показ модального окна проигрыша с анимацией
     showGameOver(finalScore) {
         if (this.isAnimating) return;
         if (!this.modal) return;
         
         this.isAnimating = true;
         
-        // Устанавливаем финальный счет
         const finalScoreElement = this.modal.querySelector('#finalScore');
         if (finalScoreElement) {
             finalScoreElement.textContent = finalScore;
         }
         
-        // Скрываем success modal если он открыт
         if (this.successModal.classList.contains('show')) {
             this.successModal.classList.remove('show');
             setTimeout(() => {
@@ -143,24 +128,20 @@ class ModalManager {
             }, 400);
         }
         
-        // Показываем модалку проигрыша
         this.modal.style.display = 'flex';
         
-        // Запускаем анимацию появления
         setTimeout(() => {
             this.modal.classList.add('show');
             this.isAnimating = false;
         }, 10);
     }
 
-    // Показ модального окна успеха с анимацией
     showSuccess() {
         if (this.isAnimating) return;
         if (!this.successModal) return;
         
         this.isAnimating = true;
         
-        // Скрываем game over modal если он открыт
         if (this.modal.classList.contains('show')) {
             this.modal.classList.remove('show');
             setTimeout(() => {
@@ -168,23 +149,19 @@ class ModalManager {
             }, 400);
         }
         
-        // Показываем модалку успеха
         this.successModal.style.display = 'flex';
         
-        // Запускаем анимацию появления
         setTimeout(() => {
             this.successModal.classList.add('show');
             this.isAnimating = false;
         }, 10);
     }
 
-    // Скрытие всех модальных окон с анимацией
     hideAll() {
         if (this.isAnimating) return;
         
         this.isAnimating = true;
         
-        // Убираем класс show для запуска анимации исчезновения
         if (this.modal.classList.contains('show')) {
             this.modal.classList.remove('show');
         }
@@ -193,7 +170,6 @@ class ModalManager {
             this.successModal.classList.remove('show');
         }
         
-        // Ждем завершения анимации перед скрытием display
         setTimeout(() => {
             if (this.modal.style.display === 'flex') {
                 this.modal.style.display = 'none';
@@ -202,25 +178,21 @@ class ModalManager {
                 this.successModal.style.display = 'none';
             }
             this.isAnimating = false;
-        }, 400); // 400ms = длительность анимации
+        }, 400);
     }
 
-    // Проверка, видно ли любое модальное окно
     isAnyModalVisible() {
         return this.modal.classList.contains('show') || 
                this.successModal.classList.contains('show');
     }
 
-    // Установка callback для перезапуска игры
     setOnRestart(callback) {
         this.onRestartCallback = callback;
     }
 }
 
-// Экспортируем экземпляр модального менеджера
 const modalManager = new ModalManager();
 
-// Автоматическая инициализация при загрузке
 document.addEventListener('DOMContentLoaded', () => {
     modalManager.init();
 });

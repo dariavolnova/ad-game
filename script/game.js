@@ -14,31 +14,32 @@ class Game {
         this.baseSpeed = 6;
         this.maxBlocks = 15;
         
-        // Анимационные переменные
+        // анимационные переменные
         this.fallingBlock = null;
         this.fallAngle = 0;
         this.fallSpeed = 0;
         this.fallRotationCenter = { x: 0, y: 0 };
         this.fallDirection = 'right';
         
-        // Падающие вниз блоки
         this.fallingBlocks = [];
         
-        // Для загрузки картинок
+        // для загрузки картинок
         this.blockImages = {};
         this.blockSizes = {};
         this.imagesLoaded = false;
         this.imagesToLoad = 8;
         this.imagesLoadedCount = 0;
         
-        // Адаптивные размеры
         this.blockWidth = 0;
         this.blockHeight = 0;
         
-        // Для независимой от FPS скорости
         this.lastTime = 0;
         this.deltaTime = 0;
         this.gameLoopRunning = false;
+        
+        // минимальные размеры блоков
+        this.minBlockWidth = 100;
+        this.minBlockHeight = 20;
         
         this.init();
     }
@@ -141,16 +142,37 @@ class Game {
             block.originalHeight = size.height;
             block.aspectRatio = size.ratio;
             
-            if (!block.width) block.width = this.baseBlockWidth;
+            if (!block.width) {
+                if (window.innerWidth <= 480) {
+                    block.width = Math.max(this.minBlockWidth, this.canvas.width * 0.35);
+                } else if (window.innerWidth <= 768) {
+                    block.width = Math.max(this.minBlockWidth, this.canvas.width * 0.3);
+                } else {
+                    block.width = Math.min(this.baseBlockWidth, this.canvas.width * 0.25);
+                }
+            }
             
             block.height = block.width / block.aspectRatio;
             
-            const minHeight = this.baseBlockHeight;
+            const minHeight = window.innerWidth <= 480 ? this.minBlockHeight : this.baseBlockHeight;
             if (block.height < minHeight) {
                 block.height = minHeight;
                 block.width = block.height * block.aspectRatio;
             }
             
+            block.realHeight = block.height;
+        } else {
+            if (!block.width) {
+                if (window.innerWidth <= 480) {
+                    block.width = Math.max(this.minBlockWidth, this.canvas.width * 0.35);
+                } else if (window.innerWidth <= 768) {
+                    block.width = Math.max(this.minBlockWidth, this.canvas.width * 0.3);
+                } else {
+                    block.width = Math.min(this.baseBlockWidth, this.canvas.width * 0.25);
+                }
+            }
+            
+            block.height = window.innerWidth <= 480 ? this.minBlockHeight : this.baseBlockHeight;
             block.realHeight = block.height;
         }
     }
@@ -158,16 +180,36 @@ class Game {
     initCanvas() {
         const screenWidth = window.innerWidth;
         const screenHeight = window.innerHeight;
+
+        let maxCanvasWidth, maxCanvasHeight;
         
-        const maxCanvasWidth = Math.min(800, screenWidth * 0.95);
-        const maxCanvasHeight = Math.min(600, screenHeight * 0.7);
+        if (screenWidth <= 480) {
+            maxCanvasWidth = Math.min(400, screenWidth * 0.95);
+            maxCanvasHeight = Math.min(500, screenHeight * 0.65);
+        } else if (screenWidth <= 768) {
+            maxCanvasWidth = Math.min(600, screenWidth * 0.95);
+            maxCanvasHeight = Math.min(550, screenHeight * 0.7);
+        } else {
+            maxCanvasWidth = Math.min(800, screenWidth * 0.95);
+            maxCanvasHeight = Math.min(600, screenHeight * 0.7);
+        }
         
         this.canvas.width = maxCanvasWidth;
         this.canvas.height = maxCanvasHeight;
         
-        this.blockWidth = Math.min(this.baseBlockWidth, this.canvas.width * 0.3);
-        this.blockHeight = this.baseBlockHeight * (this.canvas.height / 700);
+        // адаптивные размеры блоков
+        if (screenWidth <= 480) {
+            this.blockWidth = Math.max(this.minBlockWidth, this.canvas.width * 0.35);
+            this.blockHeight = this.minBlockHeight;
+        } else if (screenWidth <= 768) {
+            this.blockWidth = Math.max(this.minBlockWidth, this.canvas.width * 0.3);
+            this.blockHeight = this.baseBlockHeight * (this.canvas.height / 700);
+        } else {
+            this.blockWidth = Math.min(this.baseBlockWidth, this.canvas.width * 0.25);
+            this.blockHeight = this.baseBlockHeight * (this.canvas.height / 700);
+        }
         
+        // обновляем размеры существующих блоков
         this.blocks.forEach(block => {
             this.updateBlockSizeForResize(block);
         });
@@ -182,20 +224,34 @@ class Game {
     }
     
     updateBlockSizeForResize(block) {
-        if (!block.image || !this.blockSizes[block.image]) return;
+        if (!block.image) return;
         
-        const size = this.blockSizes[block.image];
-        const scaleX = this.canvas.width / 800;
+        const screenWidth = window.innerWidth;
+        let targetWidth;
         
-        block.width = this.blockWidth * scaleX;
-        block.height = block.width / size.ratio;
-        block.x = block.x * scaleX;
-        block.realHeight = block.height;
+        if (screenWidth <= 480) {
+            targetWidth = Math.max(this.minBlockWidth, this.canvas.width * 0.35);
+        } else if (screenWidth <= 768) {
+            targetWidth = Math.max(this.minBlockWidth, this.canvas.width * 0.3);
+        } else {
+            targetWidth = Math.min(this.baseBlockWidth, this.canvas.width * 0.25);
+        }
+        
+        const scaleFactor = targetWidth / (block.width || targetWidth);
+        block.width = targetWidth;
+        
+        if (block.aspectRatio) {
+            block.height = block.width / block.aspectRatio;
+        } else {
+            block.height = screenWidth <= 480 ? this.minBlockHeight : this.baseBlockHeight;
+        }
         
         if (block.x < 0) block.x = 0;
         if (block.x + block.width > this.canvas.width) {
             block.x = this.canvas.width - block.width;
         }
+        
+        block.realHeight = block.height;
     }
 
     setupEventListeners() {
@@ -203,7 +259,6 @@ class Game {
             this.initCanvas();
         });
 
-        // Клавиша пробел
         document.addEventListener('keydown', (e) => {
             if (this.gameOver || !this.currentBlock || 
                 this.currentBlock.hasLanded || this.fallingBlock) return;
@@ -213,19 +268,16 @@ class Game {
             }
         });
 
-        // Клик мышкой
         this.canvas.addEventListener('click', () => {
             this.handleTap();
         });
 
-        // Тап на мобильных
         this.canvas.addEventListener('touchstart', (e) => {
             e.preventDefault();
             this.handleTap();
         });
     }
 
-    // Обработчик тапа/клика
     handleTap() {
         if (this.gameOver || this.fallingBlock) return;
         
@@ -235,7 +287,6 @@ class Game {
         }
     }
 
-    // Падение блока
     dropCurrentBlock() {
         if (this.currentBlock && !this.currentBlock.isFalling && 
             !this.currentBlock.hasLanded) {
@@ -263,16 +314,21 @@ class Game {
             blockNumber = Math.floor(Math.random() * 6) + 2;
         }
         
+        let speedMultiplier = 1;
+        if (window.innerWidth <= 480) {
+            speedMultiplier = 0.8; 
+        }
+        
         const block = {
             x: this.canvas.width / 2 - this.baseBlockWidth / 2,
             y: 50,
-            width: this.baseBlockWidth,
-            height: this.baseBlockHeight,
+            width: 0,
+            height: 0, 
             originalWidth: null,
             originalHeight: null,
             aspectRatio: null,
-            realHeight: this.baseBlockHeight,
-            speedX: this.baseSpeed * startDirection,
+            realHeight: 0,
+            speedX: this.baseSpeed * startDirection * speedMultiplier,
             speedY: 0,
             color: this.getRandomColor(),
             image: `assets/block${blockNumber}.png`,
@@ -285,6 +341,8 @@ class Game {
         };
         
         this.updateBlockSize(block);
+        
+        block.x = this.canvas.width / 2 - block.width / 2;
         
         return block;
     }
@@ -419,7 +477,7 @@ class Game {
             return;
         }
         
-        // Блок движется влево-вправо автоматически (без управления игроком)
+        // движение
         if (this.currentBlock.isMoving && !this.currentBlock.isFalling) {
             this.currentBlock.x += this.currentBlock.speedX * this.deltaTime;
             
@@ -465,7 +523,7 @@ class Game {
                     const overlapInfo = this.isBlockOnPrevious(this.currentBlock, previousBlock);
                     
                     if (overlapInfo.isValid) {
-                        // УСПЕШНОЕ ПРИЗЕМЛЕНИЕ
+                        // успешное падение
                         this.currentBlock.hasLanded = true;
                         this.currentBlock.isFalling = false;
                         this.currentBlock.isMoving = false;
@@ -487,7 +545,7 @@ class Game {
                         }, 100);
                         return;
                     } else {
-                        // НЕУДАЧНОЕ ПРИЗЕМЛЕНИЕ (упадет с башни)
+                        // неудачное падение
                         this.currentBlock.hasLanded = true;
                         this.currentBlock.isFalling = false;
                         this.currentBlock.isMoving = false;
@@ -499,7 +557,7 @@ class Game {
                         return;
                     }
                 } else {
-                    // УПАЛ НА ДРУГОЙ БЛОК (не предыдущий)
+                    // падение на не предыдущий блок
                     this.currentBlock.y = collidedBlock.y - currentBlockRealHeight;
                     this.currentBlock.hasLanded = true;
                     this.currentBlock.isFalling = false;
@@ -515,7 +573,7 @@ class Game {
                 }
             }
             
-            // Падение на пол
+            // падение на пол
             if (this.currentBlock.y + currentBlockRealHeight >= this.canvas.height) {
                 this.currentBlock.y = this.canvas.height - currentBlockRealHeight;
                 this.currentBlock.hasLanded = true;
@@ -530,7 +588,7 @@ class Game {
                         this.gameOver = true;
                     }, 800);
                 } else {
-                    // Первый блок на полу - считается успешным приземлением
+                    // первый блок на полу
                     this.blocks.push({...this.currentBlock});
                     
                     this.blockCounter++;
